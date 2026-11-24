@@ -101,4 +101,4 @@ def gerar_pdf():
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5001, debug=False)
+    app.run(host="0.0.0.0", port=int(os.environ.get(5001)), debug=False)
