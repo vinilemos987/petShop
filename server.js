@@ -138,33 +138,49 @@ app.post("/api/logout", (req,res) => {
 app.get("/api/verificar", autenticar, (req, res) => {
     res.json({ autenticado: true, usuario: req.usuario})
 })
-
-async function conectarPython(endpoint, atendimentos) {
-    try{
-    const url = process.env.PYTHON_API_URL
-    const resposta = await fetch (`${url.replace(/\/$/, "")}${endpoint}`, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({atendimentos})
-    })
-    if(!resposta.ok) {
-        throw new Error(resposta.status)
-    }
-    const arquivo= Buffer.from(await resposta.arrayBuffer());
-    if(tipo === "pdf") {
-        res.setHeader("Content-Type", "application/json")
-        res.setHeader("Content-Disposition", "attachment; filename='relatorio-petshop.pdf'")
-    } else {
-        res.setHeader("Content-Type", "image/png")
-        res.setHeader("Content-Disposition", "inline; filename= graficos.png")
-    }
-    res.send(arquivo);
+ 
+async function conectarPython(endpoint, atendimentos, res, tipo) {
+    try {
+        const url = process.env.PYTHON_API_URL;
+ 
+        const resposta = await fetch(
+            `${url.replace(/\/$/, "")}${endpoint}`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ atendimentos })
+            }
+        );
+ 
+        if (!resposta.ok) {
+            throw new Error(resposta.status);
+        }
+ 
+        const arquivo = Buffer.from(await resposta.arrayBuffer());
+ 
+        if (tipo === "pdf") {
+            res.setHeader("Content-Type", "application/pdf");
+            res.setHeader(
+                "Content-Disposition",
+                "attachment; filename='relatorio-petshop.pdf'"
+            );
+        } else {
+            res.setHeader("Content-Type", "image/png");
+            res.setHeader(
+                "Content-Disposition",
+                "inline; filename=graficos.png"
+            );
+        }
+ 
+        res.send(arquivo);
+ 
     } catch (erro) {
-        console.log(erro)
-        res.status(502).json({erro: "Não foi possivel conectar com o Servidor Python "})
+        console.log(erro);
+        res.status(502).json({
+            erro: "Não foi possivel conectar com o servidor Python"
+        });
     }
 }
-
 app.get("/api/graficos", autenticar, async(req,res) => {
     try {
     const [atendimentos] = await db.execute(`
